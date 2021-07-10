@@ -18,7 +18,7 @@ services:
     restart: always
     image: organizr/organizr
     volumes:
-      - ${USERDIR}/docker/organizr:/config
+      - ${USERDIR}/docker/containers/organizr:/config
       - ${USERDIR}/docker/shared:/shared
     ports:
       - "8081:80"
@@ -31,7 +31,7 @@ services:
     container_name: "mariadb"
     hostname: mariadb
     volumes:
-        - ${USERDIR}/docker/mariadb:/config
+        - ${USERDIR}/docker/containers/mariadb:/config
     ports:
       - target: 3306
         published: 3306
@@ -69,7 +69,7 @@ services:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     volumes:
-      - ${USERDIR}/docker/homeassistant:/config
+      - ${USERDIR}/docker/containers/homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/shared:/shared
     ports:
@@ -90,9 +90,9 @@ services:
       - TRANSMISSION_WEB_HOME=/flood-for-transmission/
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/transmission:/config
+      - ${USERDIR}/docker/containers/transmission:/config
       - ${USERDIR}/docker/downloads:/downloads
-      - ${USERDIR}/docker/watch:/watch
+      - ${USERDIR}/docker/downloads/watch:/watch
       - ${USERDIR}/docker/shared:/shared
     ports:
       - 9091:9091
@@ -108,7 +108,7 @@ services:
       - TZ=${TZ}
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/sonarr:/config
+      - ${USERDIR}/docker/containers/sonarr:/config
       - ${USERDIR}/docker/media/tv:/tv #optional
       - ${USERDIR}/docker/downloads/complete:/downloads/complete #optional
       - ${USERDIR}/docker/shared:/shared
@@ -128,7 +128,7 @@ services:
       - /dev/dri/card0:/dev/dri/card0
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/jellyfin:/config
+      - ${USERDIR}/docker/containers/jellyfin:/config
       - ${USERDIR}/docker/media/tv:/data/tvshows
       - ${USERDIR}/docker/media/movies:/data/movies
     ports:
@@ -141,7 +141,7 @@ services:
     image: linuxserver/jackett
     container_name: jackett
     volumes:
-      - ${USERDIR}/docker/jackett:/config
+      - ${USERDIR}/docker/containers/jackett:/config
       - ${USERDIR}/docker/downloads/complete:/downloads
       - /etc/localtime:/etc/localtime:ro
       - ${USERDIR}/docker/shared:/shared
@@ -161,10 +161,39 @@ services:
       - TZ=${TZ}
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${USERDIR}/docker/radarr:/config
+      - ${USERDIR}/docker/containers/radarr:/config
       - ${USERDIR}/docker/media/movies:/movies
       - ${USERDIR}/docker/downloads/complete:/downloads/complete
       - ${USERDIR}/docker/shared:/shared
     ports:
       - 7878:7878
+    restart: unless-stopped
+  plex:
+    image: ghcr.io/linuxserver/plex
+    container_name: plex
+    network_mode: host
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - VERSION=docker
+      - UMASK_SET=002
+    volumes:
+      - ${USERDIR}/docker/containers/plex:/config
+      - ${USERDIR}/docker/media/movies:/movies
+      - ${USERDIR}/docker/media/tv:/tv
+    restart: unless-stopped
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${USERDIR}/docker/bazarr:/config
+      - ${USERDIR}/docker/media/movies:/movies
+      - ${USERDIR}/docker/media/tv:/tv
+    ports:
+      - 6767:6767
     restart: unless-stopped
